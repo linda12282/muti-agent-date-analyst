@@ -39,7 +39,7 @@ python -m multi_agent_analyst
 
 ## 仓库目录
 
-详见 **`仓库结构说明.txt`**。设计说明文档：**`作品介绍.docx`**。可选从源码重建 Word：`pip install python-docx` 后执行 `python scripts/build_intro_docx.py`。
+详见 **`仓库结构说明.txt`**。设计说明文档：**`作品介绍.docx`**。
 
 ## 技术栈
 
