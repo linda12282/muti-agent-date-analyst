@@ -31,7 +31,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m multi_agent_analyst
 ```
 
-5. 浏览器访问（端口与 `PORT`、`ANALYST_PUBLIC_BASE_URL` 保持一致，默认 **http://127.0.0.1:8765/** ）。
+5. 浏览器访问（端口与 `PORT`、`ANALYST_PUBLIC_BASE_URL` 保持一致）。
 
 6. 健康检查：`GET /health`，响应 JSON 中含 `web_app_url`。
 
