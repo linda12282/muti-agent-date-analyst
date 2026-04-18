@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>多 Agent 数据分析师</title>
+  <style>
+    :root { --bg:#0b1220; --card:#121c2f; --accent:#22d3ee; --text:#e2e8f0; --muted:#94a3b8; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    header { padding: 1.5rem 1.25rem; border-bottom: 1px solid #1e293b; }
+    h1 { margin:0; font-size: 1.25rem; font-weight: 600; letter-spacing: .02em; }
+    p.sub { margin: .35rem 0 0; color: var(--muted); font-size: .9rem; }
+    main { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+    .card { background: var(--card); border-radius: 14px; padding: 1.25rem; border: 1px solid #1e293b; }
+    label { display:block; font-size: .85rem; color: var(--muted); margin-bottom: .35rem; }
+    textarea { width:100%; min-height: 120px; border-radius: 10px; border:1px solid #334155; background:#0f172a; color: var(--text); padding: .75rem; font-size: .95rem; resize: vertical; }
+    input[type=file] { width:100%; padding: .5rem 0; color: var(--muted); font-size: .85rem; }
+    button { margin-top: 1rem; width:100%; border:0; border-radius: 10px; padding: .85rem 1rem; font-size: 1rem; font-weight: 600; cursor: pointer; background: linear-gradient(120deg, #0891b2, var(--accent)); color: #0f172a; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    #out { margin-top: 1.25rem; }
+    .links a { color: var(--accent); word-break: break-all; }
+    pre { white-space: pre-wrap; background:#0f172a; border-radius:10px; padding:1rem; font-size: .82rem; border:1px solid #334155; max-height: 420px; overflow: auto; }
+    .trace { font-size: .8rem; color: var(--muted); margin-top: .75rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>多 Agent 数据分析师 · 网页版工作台</h1>
+    <p class="sub">主 Agent 路由与拆解 → 子 Agent A 数据准备 · B 分析解读 · C 交互看板（LangChain + Plotly）</p>
+  </header>
+  <main>
+    <div class="card" style="margin-bottom:1rem;border-color:#0e7490">
+      <label>整体网页版链接（落地验收请用这个）</label>
+      <p class="links" style="margin:.4rem 0 0;font-size:1rem"><a id="portal-url" href="#">加载中…</a></p>
+      <p class="trace" style="margin-top:.5rem">说明：这是完整产品入口，不是某一次会话的临时链接。部署到服务器后，把 <code>ANALYST_PUBLIC_BASE_URL</code> 改成公网地址即可。</p>
+    </div>
+    <div class="card">
+      <label for="q">分析目标 / 问题（可不填则走闲聊或默认描述）</label>
+      <textarea id="q" placeholder="例：找出销售额异常偏高的门店，并给可执行建议"></textarea>
+      <label for="f" style="margin-top:1rem;">上传数据（可选：xlsx / csv / tsv / jsonl）</label>
+      <input id="f" type="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm,.jsonl,.json"/>
+      <button id="go">运行分析</button>
+    </div>
+    <div id="out"></div>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    (function portal() {
+      const u = window.location.origin + "/";
+      const a = $("portal-url");
+      a.href = u;
+      a.textContent = u;
+    })();
+    $("go").onclick = async () => {
+      const btn = $("go");
+      btn.disabled = true;
+      $("out").innerHTML = "<p>处理中…</p>";
+      const fd = new FormData();
+      fd.append("query", $("q").value || "");
+      const file = $("f").files[0];
+      if (file) fd.append("file", file);
+      try {
+        const r = await fetch("/api/analyze", { method: "POST", body: fd });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || r.statusText);
+        const portal = j.web_app_url
+          ? "<div style='margin-bottom:.75rem'><b>整体网页版</b>：<span class='links'><a href=\"" + j.web_app_url + "\">" + j.web_app_url + "</a></span><p class='trace'>" + (j.web_app_note || "") + "</p></div>"
+          : "";
+        const links = [];
+        if (j.dashboard_url) links.push("<div><b>本次 · 交互看板</b>：<span class='links'><a href=\"" + j.dashboard_url + "\" target=\"_blank\" rel=\"noopener\">" + j.dashboard_url + "</a></span></div>");
+        if (j.report_url) links.push("<div><b>本次 · Markdown 报告</b>：<span class='links'><a href=\"" + j.report_url + "\" target=\"_blank\" rel=\"noopener\">" + j.report_url + "</a></span></div>");
+        $("out").innerHTML =
+          "<div class='card' style='margin-top:1rem'>" + portal + links.join("") +
+          "<p class='trace'>" + (j.result_note || "") + "</p>" +
+          "<p class='trace'>session: " + j.session_id + " · mode: " + j.mode + "</p>" +
+          "<h3 style='margin:1rem 0 .5rem;font-size:.95rem'>主 Agent 回复</h3>" +
+          "<pre>" + (j.reply_markdown || "").replace(/</g,"&lt;") + "</pre>" +
+          "<p class='trace'>" + (j.hint || "") + "</p></div>";
+      } catch (e) {
+        $("out").innerHTML = "<div class='card' style='margin-top:1rem;color:#f87171'>错误：" + e + "</div>";
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+本仓库目录说明（面向审阅与复现）
+================================
+
+multi_agent_analyst/     Python 源码包（Web、主 Agent、三子 Agent）
+requirements.txt         依赖锁定（requirements 内为 ASCII 注释）
+.env.example               环境变量模板（不含密钥）
+sample_data/demo_sales.csv  示例表格
+output/sessions/         运行产物目录（默认仅 .gitkeep；会话结果在本地生成）
+作品介绍.docx            Word 设计说明
+scripts/build_intro_docx.py  从脚本重建「作品介绍.docx」（需 python-docx）
+README.md                运行与功能说明
+
+
