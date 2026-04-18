@@ -1,0 +1,9 @@
+.venv/
+.venv_ma/
+__pycache__/
+*.pyc
+.env
+output/sessions/*
+!output/sessions/.gitkeep
+~$*.docx
+作品介绍_新生成.docx
