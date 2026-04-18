@@ -1,6 +1,6 @@
 # 多 Agent 数据分析师
 
-开源参赛作品说明：基于 **LangChain**（`langchain-core` + `langchain-openai`）与 **FastAPI** 的多智能体数据分析应用。
+作品说明：基于 **LangChain**（`langchain-core` + `langchain-openai`）与 **FastAPI** 的多智能体数据分析应用。
 
 ## 功能概述
 
